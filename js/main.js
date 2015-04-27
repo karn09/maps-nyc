@@ -1,99 +1,94 @@
-function mapViewModel() {
-    var self = this;
-    var map;
-    var service;
-    var infowindow;
-    // nw 40.917577, -74.25909
-    // se 40.477399, -73.700272
-    var newYork = new google.maps.LatLng(40.714623, -74.006505);
-    var test = ko.observableArray()
-    test = "Hello"
+
     function initMap() {
 
 
-        var mapOptions = {
-            zoom: 14,
-            center: newYork
-        };
-        var map = new google.maps.Map(document.getElementById('map-canvas'),
-            mapOptions);
+            var mapOptions = {
+                zoom: 14,
+                center: newYork
+            };
+            var map = new google.maps.Map(document.getElementById('map-canvas'),
+                mapOptions);
 
 
-        // search around map for type
-        var request = {
-            location: newYork,
-            keyword: 'mcdonalds', // TODO: take search input, name & address info
-            radius: 30,
-            types: ['restaurant', 'food']
-        };
+            // search around map for type
+            var request = {
+                location: newYork,
+                keyword: 'mcdonalds', // TODO: take search input, name & address info
+                radius: 30,
+                types: ['restaurant', 'food']
+            };
 
-        infowindow = new google.maps.InfoWindow();
-        var service = new google.maps.places.PlacesService(map);
-        service.nearbySearch(request, function(results) {
-            //console.log(results)
-            results.forEach(function(result) {
-                // access Soda API with formatted data...does not work as planned because restaurant names don't always match.
-                // console.log(result.vicinity.toUpperCase().split(',')[0] + " : " + result.name.toUpperCase())
-                Model.searchQuery('"' + result.vicinity.toUpperCase().split(',')[0] + '" ' + ' AND "' + result.name.toUpperCase() + '"')
+            infowindow = new google.maps.InfoWindow();
+            var service = new google.maps.places.PlacesService(map);
+            service.nearbySearch(request, function(results) {
+                //console.log(results)
+                results.forEach(function(result) {
+                    // access Soda API with formatted data...does not work as planned because restaurant names don't always match.
+                    // console.log(result.vicinity.toUpperCase().split(',')[0] + " : " + result.name.toUpperCase())
+                    API_ViewModel.searchQuery('"' + result.vicinity.toUpperCase().split(',')[0] + '" ' + ' AND "' + result.name.toUpperCase() + '"')
 
-                //console.log(result.name + " at " + result.vicinity)
-            })
-        });
-
-
-    }
-
-    var Model = {
-        baseUrl: "https://data.cityofnewyork.us/resource/xx67-kt59.json?",
-
-        searchResults: ko.observableArray(),
-
-        searchQuery: function(query) {
-            var queryBuilder = this.baseUrl + "$q=" + query;
-            return this.getSodaData(queryBuilder);
-        },
-
-        getSodaData: function(query) {
-            // Make the API call to Soda
-            var self = this; // scope 'this' for use inside inner functions
-
-            $.getJSON(query, function(result) {
-            }).done(function(json) {
-                
-                json.forEach(function(obj) {
-                    
-                    self.searchResults.push({
-                        'name': obj.dba,
-                        'grade': obj.grade,
-                        'violations': obj.violation_description
-                    });
+                    //console.log(result.name + " at " + result.vicinity)
                 })
-            }).fail(function(err) {
-                console.log(err)
-            })
-        },
+            });
 
-        searchSodaDataByName: function(street, name) {
-            return this.getSodaData(Model.baseUrl, street, name)
+
         }
-
-    }
-
-
-
-
-    // Start map, do not remove
+        // Start map, do not remove
     initMap()
 }
 
+var API_ViewModel = function() {
+    var self = this;
+    var baseUrl = "https://data.cityofnewyork.us/resource/xx67-kt59.json?"
 
-// Model
+    self.searchResults = ko.observableArray()
 
-var ratings = "";
+    var searchQuery = function(query) {
+        var queryBuilder = this.baseUrl + "$q=" + query;
+        return this.getSodaData(queryBuilder);
+    }
+
+    var getSodaData = function(query) {
+        // Make the API call to Soda
+        // scope 'this' for use inside inner functions
+
+        $.getJSON(query, function(result) {}).done(function(json) {
+
+            json.forEach(function(obj) {
+                //console.log(obj)
+                self.searchResults.push({
+                    'name': obj.dba,
+                    'grade': obj.grade,
+                    'violations': obj.violation_description
+                });
+            })
+        }).fail(function(err) {
+            console.log(err)
+        })
+    }
+
+    var searchSodaDataByName = function(street, name) {
+        return this.getSodaData(Model.baseUrl, street, name)
+    }
+
+}
+
+
+
+
+
+
+
 
 $(document).ready(function() {
-    ko.applyBindings(mapViewModel);
+    initialize()
+    ko.applyBindings(new API_ViewModel())
 });
+
+
+
+
+// OLD 
 
 // "https://data.cityofnewyork.us/resource/xx67-kt59.json?$where=street='Morris Park Ave' AND zipcode='10462'"
 

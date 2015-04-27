@@ -28,15 +28,16 @@
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <span data-bind="text: test"></span>
-
+                <div data-bind="foreach: searchResults">
+                     <span data-bind="text: name"></span>
+                </div>
             </div>
             <div class="col-sm-6">
                 bottom-right
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/initialize.js"></script>
 </body>
 
 </html>
